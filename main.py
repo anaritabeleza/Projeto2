@@ -70,7 +70,7 @@ x_treino_reconstruido_pca = pca.inverse_transform(x_treino_pca)#reconstruir para
 x_val_reconstrucao_pca = pca.inverse_transform(x_val_pca)
 x_teste_reconstrucao_pca = pca.inverse_transform(x_teste_pca)
 
-ae = Autoencoder(n_componentes = 32, lr = 0.05)
+ae = Autoencoder(n_componentes = 32, lr = 0.8)
 ae.treinar(x_treino, epocas = 500)
 x_treino_ae,x_treino_reconstruido_ae = ae.comprimir_e_reconstruir(x_treino)
 x_val_ae,x_val_reconstruido_ae = ae.comprimir_e_reconstruir(x_val)
