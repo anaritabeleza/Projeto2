@@ -67,7 +67,7 @@ class PCA:
     
     
 class Autoencoder:
-    def __init__(self,n_componentes,lr = 0.05,random_state = 42):
+    def __init__(self,n_componentes,lr = 0.8,random_state = 42):
         self.n_componentes = n_componentes
         self.lr = lr
         self.n_entradas = 784 # 28x28 pixeis de cada imagem 
