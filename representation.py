@@ -50,9 +50,8 @@ class PCA:
     def inverse_transform(self, x_comprimido):
         return np.dot(x_comprimido, self.componentes.T) + self.media
 
-
 class Autoencoder:
-    def __init__(self, n_componentes, lr=0.05, random_state=42):
+    def __init__(self, n_componentes, lr=0.2, random_state=42):
         self.n_componentes = n_componentes
         self.lr = lr
         self.n_entradas = 784
@@ -62,9 +61,15 @@ class Autoencoder:
         self.W1 = rng.standard_normal((self.n_entradas, self.n_componentes)) * escala_w1
         self.b1 = np.zeros((1, self.n_componentes))
 
-        escala_w2 = np.sqrt(2.0 / self.n_componentes)
+        escala_w2 = np.sqrt(1.0 / self.n_componentes)
         self.W2 = rng.standard_normal((self.n_componentes, self.n_entradas)) * escala_w2
         self.b2 = np.zeros((1, self.n_entradas))
+
+    def relu(self, z):
+        return np.maximum(0, z)
+    
+    def derivada_relu(self, z):
+        return (z > 0).astype(float)
 
     def sigmoide(self, z):
         z = np.clip(z, -500, 500)
@@ -73,36 +78,31 @@ class Autoencoder:
     def derivada_sigmoide(self, a):
         return a * (1.0 - a)
     
-    def treinar(self, x, epocas=50, batch_size=256):
+    def treinar(self, x, epocas=100, batch_size=256):
         m = x.shape[0]
         
         for epoca in range(epocas):
-            # Baralha os dados em cada época
             indices = np.random.permutation(m)
             x_shuffled = x[indices]
             
-            # Treino por mini-batches
             for i in range(0, m, batch_size):
                 batch_x = x_shuffled[i:i + batch_size]
                 b_size = batch_x.shape[0]
                 
-                # Forward Pass
                 Z1 = np.dot(batch_x, self.W1) + self.b1
-                A1 = self.sigmoide(Z1)
+                A1 = self.relu(Z1) 
                 
                 Z2 = np.dot(A1, self.W2) + self.b2
-                A2 = self.sigmoide(Z2)
+                A2 = self.sigmoide(Z2) 
                 
-                # Backward Pass (Gradientes)
                 dZ2 = (A2 - batch_x) * self.derivada_sigmoide(A2)
                 dW2 = np.dot(A1.T, dZ2) / b_size
                 db2 = np.sum(dZ2, axis=0, keepdims=True) / b_size
                 
-                dZ1 = np.dot(dZ2, self.W2.T) * self.derivada_sigmoide(A1)
+                dZ1 = np.dot(dZ2, self.W2.T) * self.derivada_relu(Z1)
                 dW1 = np.dot(batch_x.T, dZ1) / b_size
                 db1 = np.sum(dZ1, axis=0, keepdims=True) / b_size
                 
-                # Atualização de Pesos
                 self.W1 -= self.lr * dW1
                 self.b1 -= self.lr * db1
                 self.W2 -= self.lr * dW2
@@ -110,7 +110,7 @@ class Autoencoder:
             
             if (epoca + 1) % 10 == 0:
                 Z1_full = np.dot(x, self.W1) + self.b1
-                A1_full = self.sigmoide(Z1_full)
+                A1_full = self.relu(Z1_full)
                 Z2_full = np.dot(A1_full, self.W2) + self.b2
                 A2_full = self.sigmoide(Z2_full)
                 erro = np.mean((A2_full - x) ** 2)
@@ -118,13 +118,12 @@ class Autoencoder:
                 
     def comprimir_e_reconstruir(self, x):
         Z1 = np.dot(x, self.W1) + self.b1
-        codigos = self.sigmoide(Z1)
+        codigos = self.relu(Z1)
         
         Z2 = np.dot(codigos, self.W2) + self.b2
         reconstrucoes = self.sigmoide(Z2)
         
-        return codigos, reconstrucoes 
-
+        return codigos, reconstrucoes
 
 def desenhar_tsne(X, y, amostra=1000):
     tsne = TSNE(n_components=2, random_state=42)
