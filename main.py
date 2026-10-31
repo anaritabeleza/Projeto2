@@ -246,4 +246,3 @@ resultados_retrieval = avaliar_multiplos_espacos(
     n_consultas=500
 )
 
-encontrar_e_mostrar_falhas(x_teste_pca, y_teste, x_treino_pca, y_treino, k=5, max_falhas=5)
